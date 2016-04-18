@@ -44,6 +44,16 @@ namespace FakeBus
                 PublishedMessages.Add(message);
         }
 
+        public void Publish<T>(T message)
+        {
+            PublishedMessages.Add(message);
+        }
+
+        public void Publish<T>()
+        {
+            Publish(CreateInstance<T>());
+        }
+
         public void Publish<T>(Action<T> messageConstructor)
         {
             if (messageConstructor == null)
@@ -104,6 +114,12 @@ namespace FakeBus
             return null;
         }
 
+        public ICallback SendLocal(object message)
+        {
+            SentLocalMessages.Add(message);
+            return null;
+        }
+
         public ICallback SendLocal<T>(Action<T> messageConstructor)
         {
             if (messageConstructor == null)
@@ -126,13 +142,17 @@ namespace FakeBus
             return null;
         }
 
+        public ICallback Send(object message)
+        {
+            return Send(new[] {message});
+        }
+
         public ICallback Send<T>(Action<T> messageConstructor)
         {
             var message = CreateInstance<T>();
             messageConstructor(message);
 
-            SentMessages.Add(new Tuple<string, string, object>(null, null, message));
-            return null;
+            return Send(message);
         }
 
         public ICallback Send(string destination, params object[] messages)
@@ -140,9 +160,23 @@ namespace FakeBus
             return Send(Address.Parse(destination), messages);
         }
 
+        public ICallback Send(string destination, object message)
+        {
+            return Send(Address.Parse(destination), message);
+        }
+
         public ICallback Send(Address address, params object[] messages)
         {
-            return Send(address, null, messages);
+            foreach (var message in messages)
+                Send(address, message);
+
+            return null;
+        }
+
+        public ICallback Send(Address address, object message)
+        {
+            SentMessages.Add(new Tuple<string, string, object>(address.ToString(), null, message));
+            return null;
         }
 
         public ICallback Send<T>(string destination, Action<T> messageConstructor)
@@ -160,12 +194,22 @@ namespace FakeBus
             return Send(Address.Parse(destination), correlationId, messages);
         }
 
+        public ICallback Send(string destination, string correlationId, object message)
+        {
+            return Send(Address.Parse(destination), correlationId, new[] {message});
+        }
+
         public ICallback Send(Address address, string correlationId, params object[] messages)
         {
             foreach (var message in messages)
                 SentMessages.Add(new Tuple<string, string, object>(address.ToString(), correlationId, message));
 
             return null;
+        }
+
+        public ICallback Send(Address address, string correlationId, object message)
+        {
+            return Send(address, correlationId, new[] { message });
         }
 
         public ICallback Send<T>(string destination, string correlationId, Action<T> messageConstructor)
@@ -187,11 +231,21 @@ namespace FakeBus
             throw new NotImplementedException();
         }
 
+        public ICallback SendToSites(IEnumerable<string> siteKeys, object message)
+        {
+            throw new NotImplementedException();
+        }
+
         public List<Tuple<DateTime, object>> DeferredMessages { get; private set; } 
 
         public ICallback Defer(TimeSpan delay, params object[] messages)
         {
             return Defer(DateTime.Now.Add(delay), messages);
+        }
+
+        public ICallback Defer(TimeSpan delay, object message)
+        {
+            return Defer(DateTime.Now.Add(delay), new[] {message});
         }
 
         public ICallback Defer(DateTime processAt, params object[] messages)
@@ -202,12 +256,22 @@ namespace FakeBus
             return null;    
         }
 
+        public ICallback Defer(DateTime processAt, object message)
+        {
+            return Defer(processAt, new [] { message });
+        }
+
         public List<object> Replies { get; private set; } 
 
         public void Reply(params object[] messages)
         {
             foreach(var message in messages)
                 Replies.Add(message);
+        }
+
+        public void Reply(object message)
+        {
+            Reply(new [] { message });
         }
 
         public void Reply<T>(Action<T> messageConstructor)
