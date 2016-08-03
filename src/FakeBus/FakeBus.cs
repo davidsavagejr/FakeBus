@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using NServiceBus;
 
-namespace FakeBus
+namespace Fake.Bus
 {
     public class FakeBus : IBus
     {
@@ -14,6 +14,18 @@ namespace FakeBus
             SentLocalMessages = new List<object>();
             SentMessages = new List<Tuple<string, string, object>>();
             DeferredMessages = new List<Tuple<DateTime, object>>();
+            Replies = new List<object>();
+        }
+
+        public void Reset()
+        {
+            PublishedMessages.Clear();
+            SubscribedMessages.Clear();
+            UnsubscribedMessages.Clear();
+            SentLocalMessages.Clear();
+            SentMessages.Clear();
+            DeferredMessages.Clear();
+            Replies.Clear();
         }
 
         public virtual T CreateInstance<T>()
