@@ -22,7 +22,8 @@ var localSentMessages = Bus.SentLocalMessages.ToList();
 var localSentMessages = Bus.SentLocalMessages.OfType<SomeOtherMessage>();  
   
 // Get messages of a specific type sent to Bus.Send(...)
-var sentMessages = Bus.SentMessages.OfType<CommandToAnotherSystem>();  
+// Note this uses an extension method
+var sentMessages = Bus.SentMessages<CommandToAnotherSystem>();  
 
 // Get messages of a specific type sent to Bus.Publish(...)
 var sentMessages = Bus.PublishedMessages.OfType<SomeEvent>();  
